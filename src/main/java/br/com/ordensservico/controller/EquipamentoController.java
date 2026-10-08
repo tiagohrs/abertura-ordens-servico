@@ -1,6 +1,7 @@
 package br.com.ordensservico.controller;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.ordensservico.dto.EquipamentoRequest;
 import br.com.ordensservico.model.Equipamento;
 import br.com.ordensservico.service.EquipamentoService;
 import jakarta.validation.Valid;
@@ -28,8 +30,13 @@ public class EquipamentoController {
     }
 
     @PostMapping
-    public ResponseEntity<Equipamento> cadastrar(@Valid @RequestBody Equipamento equipamento) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(service.cadastrar(equipamento));
+    public ResponseEntity<?> cadastrar(@Valid @RequestBody EquipamentoRequest request) {
+        Optional<Equipamento> cadastrado = service.cadastrar(request);
+
+        if (cadastrado.isEmpty()) {
+            return ResponseEntity.badRequest().body("Setor não encontrado");
+        }
+        return ResponseEntity.status(HttpStatus.CREATED).body(cadastrado.get());
     }
 
     @GetMapping
@@ -46,8 +53,8 @@ public class EquipamentoController {
 
     @PutMapping("/{id}")
     public ResponseEntity<Equipamento> atualizar(@PathVariable Integer id,
-            @Valid @RequestBody Equipamento dados) {
-        return service.atualizar(id, dados)
+            @Valid @RequestBody EquipamentoRequest request) {
+        return service.atualizar(id, request)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

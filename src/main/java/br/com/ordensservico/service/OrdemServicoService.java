@@ -1,5 +1,6 @@
 package br.com.ordensservico.service;
 
+import br.com.ordensservico.dto.EncerramentoOrdemServicoRequest;
 import br.com.ordensservico.dto.OrdemServicoRequest;
 import br.com.ordensservico.model.Equipamento;
 import br.com.ordensservico.model.OrdemServico;
@@ -10,7 +11,9 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class OrdemServicoService {
@@ -48,6 +51,27 @@ public class OrdemServicoService {
 
     public Optional<OrdemServico> buscarPorId(Integer id) {
         return repository.findById(id);
+    }
+
+    public List<OrdemServico> listarAbertas() {
+        return repository.findByDataEncerramentoIsNull();
+    }
+
+    public Optional<OrdemServico> encerrar(Integer id, EncerramentoOrdemServicoRequest dados) {
+        Optional<OrdemServico> encontrada = repository.findById(id);
+            if (encontrada.isEmpty()) {
+                return Optional.empty();
+            }
+
+            OrdemServico ordem = encontrada.get();
+            if (ordem.getDataEncerramento() != null) {
+                throw new ResponseStatusException(HttpStatus.CONFLICT, "A ordem já foi encerrada");
+            }
+
+            ordem.setSolucao(dados.getSolucao());
+            ordem.setDataEncerramento(LocalDateTime.now());
+
+            return Optional.of(repository.save(ordem));
     }
 
 }

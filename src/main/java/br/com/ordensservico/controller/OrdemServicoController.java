@@ -6,12 +6,14 @@ import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import br.com.ordensservico.dto.EncerramentoOrdemServicoRequest;
 import br.com.ordensservico.dto.OrdemServicoRequest;
 import br.com.ordensservico.model.OrdemServico;
 import br.com.ordensservico.service.OrdemServicoService;
@@ -45,6 +47,19 @@ public class OrdemServicoController {
     @GetMapping("/{id}")
     public ResponseEntity<OrdemServico> buscarPorId(@PathVariable Integer id) {
         return service.buscarPorId(id)
+                .map(ResponseEntity::ok)
+                .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/abertas")
+    public ResponseEntity<List<OrdemServico>> listarAbertas() {
+        return ResponseEntity.ok(service.listarAbertas());
+    }
+
+    @PatchMapping("/{id}/encerramento")
+    public ResponseEntity<OrdemServico> encerrar(@PathVariable Integer id,
+            @Valid @RequestBody EncerramentoOrdemServicoRequest dados) {
+        return service.encerrar(id, dados)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
